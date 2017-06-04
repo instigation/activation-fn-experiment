@@ -33,3 +33,12 @@
 
 # IntelliJ
 /out/
+
+## floyd
+.floyddata
+.floydexpt
+.floydignore
+floyd_key.txt
+
+## MNIST data
+input
