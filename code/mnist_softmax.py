@@ -79,11 +79,10 @@ def runSaveData(times, epochs):
   for _ in range(times):
     acc = zeroLayerSoftmax(mnist, epochs=epochs)
     ret.append(acc)
-  pickle.dump(ret, open("../output/test.pkl", "wb"))
+  np.savetxt("../output/test.txt", ret)
 
-def loadArray(filepath="test.pkl"):
-  return pickle.load(open(filepath, "rb"))
-
+def loadArray(filepath="../output/test.txt"):
+  return np.loadtxt(filepath)
 
 def runGraph(epochs):
   mnist = loadData()

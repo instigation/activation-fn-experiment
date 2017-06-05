@@ -50,5 +50,5 @@ __pycache__
 *.html
 
 ## my output
-*.out
+*.txt
 *.pkl
