@@ -1,3 +1,3 @@
-from code.mnist_softmax import run
+from mnist_softmax import runSaveData
 
-run(10, 18000)
+runSaveData(3, 3000)

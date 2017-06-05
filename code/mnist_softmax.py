@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
-
+import pickle
 
 def weight_variable(shape, dtype=tf.float64):
     initial = tf.truncated_normal(shape, stddev=0.01, dtype=tf.float64)
@@ -79,10 +79,11 @@ def runSaveData(times, epochs):
   for _ in range(times):
     acc = zeroLayerSoftmax(mnist, epochs=epochs)
     ret.append(acc)
-  np.savetxt("test.out", ret)
+  pickle.dump(ret, open("../output/test.pkl", "wb"))
 
-def loadArray(filepath="test.out"):
-  return np.loadtxt(filepath)
+def loadArray(filepath="test.pkl"):
+  return pickle.load(open(filepath, "rb"))
+
 
 def runGraph(epochs):
   mnist = loadData()
