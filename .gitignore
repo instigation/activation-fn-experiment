@@ -47,7 +47,7 @@ input
 __pycache__
 
 ## plotly
-.html
+*.html
 
 ## my output
-.out
+*.out

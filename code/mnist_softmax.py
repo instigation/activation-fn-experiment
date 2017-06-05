@@ -52,7 +52,7 @@ def zeroLayerSoftmax(mnist, learning_rate=0.5, mini_batch_size=100, epochs=1000)
   for epoch_index in range(epochs):
     batch_xs, batch_ys = mnist.train.next_batch(mini_batch_size)
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys, learning_rate_placeholder: learning_rate})
-    if (epoch_index % 1000 == 999) and (epoch_index > 0):
+    if epoch_index % 1000 == 999:
       current_accuracy = calculateAccuracy()
       accumulative_accuracy.append(current_accuracy)
       print(current_accuracy)
