@@ -89,5 +89,11 @@ def runGraph(epochs):
   return zeroLayerSoftmax(mnist, epochs=epochs)
 
 if __name__ == "__main__":
-  runSaveData(3, 3000)
-  print(loadArray())
+  mini_batch_size = 1000
+  epochs = 10
+  times = 5
+  runSaveData(times, mini_batch_size * epochs)
+  ret = loadArray()
+  print(ret)
+  from code.graph_drawer import drawGraphByEpochs
+  drawGraphByEpochs(ret, epochs)
