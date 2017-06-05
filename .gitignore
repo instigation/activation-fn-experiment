@@ -48,3 +48,6 @@ __pycache__
 
 ## plotly
 .html
+
+## my output
+.out

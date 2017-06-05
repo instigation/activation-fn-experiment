@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
+import numpy as np
 
 
 def weight_variable(shape, dtype=tf.float64):
@@ -27,9 +28,8 @@ def myrelu(x):
 def zeroLayerSoftmax(mnist, learning_rate=0.5, mini_batch_size=100, epochs=1000):
   ## setup variables
   x = tf.placeholder(tf.float64, [None, 784])
-  h_fc1 = FullyConnectedLayer(784, 200, myrelu, x).output
-  h_fc2 = FullyConnectedLayer(200, 50, myrelu, h_fc1).output
-  y = FullyConnectedLayer(50, 10, tf.nn.softmax, h_fc2).output
+  h_fc1 = FullyConnectedLayer(784, 10, tf.nn.sigmoid, x).output
+  y = FullyConnectedLayer(10, 10, tf.nn.softmax, h_fc1).output
   y_ = tf.placeholder(tf.float64, [None, 10])
   ## determine cost fn
   cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
@@ -47,12 +47,12 @@ def zeroLayerSoftmax(mnist, learning_rate=0.5, mini_batch_size=100, epochs=1000)
 
   ## train for real
   previous_accuracy = 0.0
-  standard = 0.001
+  standard = 0.0
   accumulative_accuracy = []
   for epoch_index in range(epochs):
     batch_xs, batch_ys = mnist.train.next_batch(mini_batch_size)
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys, learning_rate_placeholder: learning_rate})
-    if (epoch_index % 1000 == 0) and (epoch_index > 0):
+    if (epoch_index % 1000 == 999) and (epoch_index > 0):
       current_accuracy = calculateAccuracy()
       accumulative_accuracy.append(current_accuracy)
       print(current_accuracy)
@@ -73,9 +73,21 @@ def run(times, epochs):
   print(sum(ret) / times)
   return ret
 
+def runSaveData(times, epochs):
+  ret = []
+  mnist = loadData()
+  for _ in range(times):
+    acc = zeroLayerSoftmax(mnist, epochs=epochs)
+    ret.append(acc)
+  np.savetxt("test.out", ret)
+
+def loadArray(filepath="test.out"):
+  return np.loadtxt(filepath)
+
 def runGraph(epochs):
   mnist = loadData()
   return zeroLayerSoftmax(mnist, epochs=epochs)
 
 if __name__ == "__main__":
-  run(1, 18000)
+  runSaveData(3, 3000)
+  print(loadArray())
