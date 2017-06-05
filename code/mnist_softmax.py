@@ -21,34 +21,61 @@ class FullyConnectedLayer(object):
     b = bias_variable([n_out])
     self.output = activation_fn(tf.matmul(input, W) + b)
 
+def myrelu(x):
+  return tf.maximum(x, tf.constant(0.0, dtype=tf.float64))
+
 def zeroLayerSoftmax(mnist, learning_rate=0.5, mini_batch_size=100, epochs=1000):
   ## setup variables
   x = tf.placeholder(tf.float64, [None, 784])
-  h = FullyConnectedLayer(784, 100, tf.nn.sigmoid, x).output
-  y = FullyConnectedLayer(100, 10, tf.nn.softmax, h).output
+  h_fc1 = FullyConnectedLayer(784, 200, myrelu, x).output
+  h_fc2 = FullyConnectedLayer(200, 50, myrelu, h_fc1).output
+  y = FullyConnectedLayer(50, 10, tf.nn.softmax, h_fc2).output
   y_ = tf.placeholder(tf.float64, [None, 10])
   ## determine cost fn
   cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
   ## set learning rate
-  train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
+  learning_rate_placeholder = tf.placeholder(tf.float32, shape=[])
+  train_step = tf.train.GradientDescentOptimizer(learning_rate_placeholder).minimize(cross_entropy)
   sess = tf.InteractiveSession()
   ## init variables
   tf.global_variables_initializer().run()
+
+  def calculateAccuracy():
+    correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    return sess.run(accuracy, feed_dict={x:mnist.test.images, y_: mnist.test.labels})
+
   ## train for real
-  for _ in range(epochs):
+  previous_accuracy = 0.0
+  standard = 0.001
+  accumulative_accuracy = []
+  for epoch_index in range(epochs):
     batch_xs, batch_ys = mnist.train.next_batch(mini_batch_size)
-    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
-  ## calculate accuracy
-  correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-  accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-  return (sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys, learning_rate_placeholder: learning_rate})
+    if (epoch_index % 1000 == 0) and (epoch_index > 0):
+      current_accuracy = calculateAccuracy()
+      accumulative_accuracy.append(current_accuracy)
+      print(current_accuracy)
+      if abs(previous_accuracy - current_accuracy) < standard:
+        print("adapting learning rate...")
+        learning_rate /= 3
+        standard /= 5
+      previous_accuracy = current_accuracy
+
+  return accumulative_accuracy
 
 def run(times, epochs):
   ret = []
   mnist = loadData()
   for _ in range(times):
-    ret.append(zeroLayerSoftmax(mnist, epochs=epochs))
+    acc = zeroLayerSoftmax(mnist, epochs=epochs)
+    ret.append(acc[len(acc) - 1])
   print(sum(ret) / times)
+  return ret
+
+def runGraph(epochs):
+  mnist = loadData()
+  return zeroLayerSoftmax(mnist, epochs=epochs)
 
 if __name__ == "__main__":
-  run(1, 1000)
+  run(1, 18000)

@@ -45,3 +45,6 @@ input
 
 ## Python3
 __pycache__
+
+## plotly
+.html
