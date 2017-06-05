@@ -2,33 +2,35 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
 
-def weight_variable(shape):
+def weight_variable(shape, dtype=tf.float64):
     initial = tf.truncated_normal(shape, stddev=0.01, dtype=tf.float64)
-    return tf.Variable(initial, dtype=tf.float64)
+    return tf.Variable(initial, dtype=dtype)
 
-def bias_variable(shape):
+def bias_variable(shape, dtype=tf.float64):
     initial = tf.constant(0.0, shape=shape, dtype=tf.float64)
-    return tf.Variable(initial, dtype=tf.float64)
+    return tf.Variable(initial, dtype=dtype)
 
 def loadData():
   ## load data
   mnist = input_data.read_data_sets("../input/MNIST_data/", one_hot=True)
   return mnist
 
+class FulluConnectedLayer(object):
+  def __init__(self, n_in, n_out, activation_fn, input, dtype=tf.float64):
+    W = weight_variable([n_in, n_out])
+    b = bias_variable([n_out])
+    self.h = activation_fn(tf.matmul(input, W) + b)
+
+
 def zeroLayerSoftmax(mnist,learning_rate=0.5, mini_batch_size=100, epochs=18000):
   ## setup variables
   x = tf.placeholder(tf.float64, [None, 784])
-
-  ## Fully Connected Layer
-  W_fc1 = weight_variable([784, 100])
-  b_fc1 = bias_variable([100])
-  c = tf.constant(0, dtype=tf.float64)
-  h_fc1 = tf.maximum((tf.matmul(x, W_fc1) + b_fc1)*1, c)
+  h = FulluConnectedLayer(784, 100, tf.nn.sigmoid, x).h
 
   ## Softmax Layer
   W = weight_variable([100, 10])
   b = bias_variable([10])
-  y = tf.nn.softmax(tf.matmul(h_fc1, W) + b)
+  y = tf.nn.softmax(tf.matmul(h, W) + b)
 
   y_ = tf.placeholder(tf.float64, [None, 10])
   ## determine cost fn
@@ -53,3 +55,6 @@ def run(times):
   for _ in range(times):
     ret.append(zeroLayerSoftmax(mnist))
   print(sum(ret) / times)
+
+if __name__ == "__main__":
+  run(1)
