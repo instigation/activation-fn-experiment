@@ -1,3 +1,3 @@
 from code.mnist_softmax import run
 
-run(1)
+run(1, 1000)
