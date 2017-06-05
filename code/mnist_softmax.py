@@ -47,10 +47,9 @@ def zeroLayerSoftmax(mnist,learning_rate=0.5, mini_batch_size=100, epochs=18000)
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
   return (sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 
-ret = []
-mnist = loadData()
-times=10
-for _ in range(times):
-  ret.append(zeroLayerSoftmax(mnist))
-print(sum(ret)/times)
-
+def run(times):
+  ret = []
+  mnist = loadData()
+  for _ in range(times):
+    ret.append(zeroLayerSoftmax(mnist))
+  print(sum(ret) / times)

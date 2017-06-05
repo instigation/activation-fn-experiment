@@ -42,3 +42,6 @@ floyd_key.txt
 
 ## MNIST data
 input
+
+## Python3
+__pycache__
