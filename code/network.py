@@ -27,45 +27,50 @@ class Network(object):
     self.y_ = tf.placeholder(tf.float64, [None, layers[-1].n_out])
     self.y = layers[-1].var_out
     self.x = layers[0].var_in
+    self.cost = self.cost_fn(self.y, self.y_)
+    self.learning_rate_placeholder = tf.placeholder(tf.float32, shape=[])
+    self.train_step = tf.train.GradientDescentOptimizer(self.learning_rate_placeholder).minimize(self.cost)
+    correct_prediction = tf.equal(tf.argmax(self.y, 1), tf.argmax(self.y_, 1))
+    self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+  def calculateaccuracy(self, sess, x, y):
+    return sess.run(self.accuracy, feed_dict={self.x: x, self.y_: y})
 
   def runmnist(self, mini_batch_size, epochs, learning_rate, mnist, verboes=True, savelog=False, logdir='logs',
                printfreq=1000):
+    with tf.Session() as sess:
+      if savelog:
+        writer = tf.summary.FileWriter(logdir, sess.graph)
+        writer.close()
+      tf.global_variables_initializer().run()
+      accuracies = []
+      for epoch_index in range(epochs):
+        batch_xs, batch_ys = mnist.train.next_batch(mini_batch_size)
+        sess.run(self.train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys, self.learning_rate_placeholder: learning_rate})
+        if (epoch_index + 1) % printfreq == 0:
+          accuracy = self.calculateaccuracy(sess, mnist.test.images, mnist.test.labels)
+          accuracies.append(accuracy)
+          if verboes:
+            print("epochs %d : %.2f" % (epoch_index + 1, accuracy * 100) + '%')
 
-    cost = self.cost_fn(self.y, self.y_)
-    learning_rate_placeholder = tf.placeholder(tf.float32, shape=[])
-    train_step = tf.train.GradientDescentOptimizer(learning_rate_placeholder).minimize(cost)
-    sess = tf.InteractiveSession()
-    if savelog:
-      writer = tf.summary.FileWriter(logdir, sess.graph)
-      writer.close()
-    tf.global_variables_initializer().run()
-
-    def calculateAccuracy(x, y_):
-      correct_prediction = tf.equal(tf.argmax(self.y, 1), tf.argmax(self.y_, 1))
-      accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-      return sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels})
-
-    accuracies = []
-    for epoch_index in range(epochs):
-      batch_xs, batch_ys = mnist.train.next_batch(mini_batch_size)
-      sess.run(train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys, learning_rate_placeholder: learning_rate})
-      if (epoch_index + 1) % printfreq == 0:
-        accuracy = calculateAccuracy(self.x, self.y_)
-        accuracies.append(accuracy)
-        if verboes:
-          print("epochs %d : %.2f" % (epoch_index + 1, accuracy * 100) + '%')
-
-    return accuracies
+      return accuracies
 
 
 if __name__ == "__main__":
   from code.data import Data
 
+
   def reluVar(a):
-    return lambda x : tf.maximum(x*a, tf.constant(0.0, dtype=tf.float64))
+    return lambda x: tf.maximum(x * a, tf.constant(0.0, dtype=tf.float64))
+
+
+  def transSigmoid(down):
+    return lambda x: tf.nn.sigmoid(x) - tf.constant(down, dtype=tf.float64)
+
+
   dtype = tf.float64
   x = tf.placeholder(dtype, [None, 784])
-  layer01 = FullyConnectedLayer(784, 100, reluVar(1), x, dtype)
+  layer01 = FullyConnectedLayer(784, 100, transSigmoid(0.5), x, dtype)
   layer12 = FullyConnectedLayer(100, 10, tf.nn.softmax, layer01.var_out, dtype)
 
 
@@ -75,5 +80,4 @@ if __name__ == "__main__":
 
   net = Network([layer01, layer12], cross_entropy)
   mnist = Data().loadmnistdata()
-  net.runmnist(100, 3000, 0.5, mnist)
-
+  net.runmnist(100, 20000, 0.5, mnist)
