@@ -12,12 +12,13 @@ class FullyConnectedLayer(object):
     self.var_out = activation_fn(tf.matmul(var_in, W) + b)
 
   def smartrand_weight_variable(self, shape, n_out, dtype):
-    initial = tf.truncated_normal(shape, stddev=1/n_out, dtype=dtype)
+    initial = tf.truncated_normal(shape, stddev=1 / n_out, dtype=dtype)
     return tf.Variable(initial, dtype=dtype)
 
   def zero_bias_variable(self, shape, dtype):
     initial = tf.constant(0.0, shape=shape, dtype=dtype)
     return tf.Variable(initial, dtype=dtype)
+
 
 class Network(object):
   def __init__(self, layers, cost_fn):
@@ -27,7 +28,8 @@ class Network(object):
     self.y = layers[-1].var_out
     self.x = layers[0].var_in
 
-  def runmnist(self, mini_batch_size, epochs, learning_rate, mnist, verboes=True, savelog=False, logdir='logs', printfreq=1000):
+  def runmnist(self, mini_batch_size, epochs, learning_rate, mnist, verboes=True, savelog=False, logdir='logs',
+               printfreq=1000):
 
     cost = self.cost_fn(self.y, self.y_)
     learning_rate_placeholder = tf.placeholder(tf.float32, shape=[])
@@ -55,13 +57,23 @@ class Network(object):
 
     return accuracies
 
+
 if __name__ == "__main__":
+  from code.data import Data
+
   dtype = tf.float64
   x = tf.placeholder(dtype, [None, 784])
   layer01 = FullyConnectedLayer(784, 10, tf.nn.softmax, x, dtype)
+
+
   def cross_entropy(y, y_):
     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+
+
   net = Network([layer01], cross_entropy)
-  from code.data import Data
   mnist = Data().loadmnistdata()
   net.runmnist(100, 3000, 0.5, mnist)
+
+
+  def myrelu(x):
+    return tf.maximum(x, tf.constant(0.0, dtype=tf.float64))
