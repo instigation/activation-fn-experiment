@@ -1,10 +1,17 @@
-import code.network as network
+import network as network
 import tensorflow as tf
-from code.data import Data
+from data import Data
+import numpy as np
 
 
 def nametofilename(str):
   return str.replace(" ", "_")
+
+
+def average(arrays):
+  n = len(arrays)
+  sum = np.sum(arrays, axis=0)
+  return [elem / n for elem in sum]
 
 
 class ExperimentManager(object):
@@ -13,12 +20,13 @@ class ExperimentManager(object):
 
 
 class ActivationfnExperiment(object):
-  def __init__(self, activationfns, tags, name):
+  def __init__(self, activationfns, tags, name, n_iteration):
     self.activationfns = activationfns
     self.tags = tags
     self.name = name
     self.filename = nametofilename(name)
     self.data = Data()
+    self.n_iteration = n_iteration
 
   def runone(self, activationfn):
     dtype = tf.float64
@@ -31,9 +39,14 @@ class ActivationfnExperiment(object):
 
     net = network.Network([layer01, layer02], cross_entropy)
     mnist = self.data.loadmnistdata()
-    return net.runmnist(100, 20000, 0.5, mnist)
+    ret = []
+    for _ in range(self.n_iteration):
+      ret.append(net.runmnist(100, 20000, 0.5, mnist))
+    self.raw_output.append(ret)
+    return average(ret)
 
   def run(self):
+    self.raw_output = []
     self.output = []
     for activationfn in self.activationfns:
       self.output.append(self.runone(activationfn))
@@ -43,11 +56,19 @@ class ActivationfnExperiment(object):
     self.run()
     self.data.savetxt(self.filename, self.output)
 
+  def loadoutput(self):
+    self.output = self.data.loadoutputtxt(self.filename)
+
 
 if __name__ == "__main__":
-  expr = ActivationfnExperiment([tf.nn.sigmoid, tf.nn.relu], ["sigmoid", "relu"], "sigmoid vs relu")
-  expr.run()
-
   from code.graph_drawer import drawexperimentgraph
 
-  drawexperimentgraph(expr, expr.filename)
+  onfloyd = False
+  if onfloyd:
+    expr = ActivationfnExperiment([tf.nn.sigmoid, tf.nn.relu], ["sigmoid", "relu"], "sigmoid vs relu", 2)
+    expr.runandsaveoutput()
+    drawexperimentgraph(expr, expr.filename)
+  else:
+    empty_expr = ActivationfnExperiment([], ["sigmoid", "relu"], "sigmoid vs relu", 2)
+    empty_expr.loadoutput()
+    drawexperimentgraph(empty_expr, empty_expr.filename)

@@ -50,8 +50,7 @@ __pycache__
 *.html
 
 ## my output
-*.txt
-*.pkl
+/output
 
 ## log from tensorflow with tensorboard
 logs

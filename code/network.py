@@ -61,19 +61,19 @@ class Network(object):
 if __name__ == "__main__":
   from code.data import Data
 
+  def reluVar(a):
+    return lambda x : tf.maximum(x*a, tf.constant(0.0, dtype=tf.float64))
   dtype = tf.float64
   x = tf.placeholder(dtype, [None, 784])
-  layer01 = FullyConnectedLayer(784, 10, tf.nn.softmax, x, dtype)
+  layer01 = FullyConnectedLayer(784, 100, reluVar(1), x, dtype)
+  layer12 = FullyConnectedLayer(100, 10, tf.nn.softmax, layer01.var_out, dtype)
 
 
   def cross_entropy(y, y_):
     return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
 
-  net = Network([layer01], cross_entropy)
+  net = Network([layer01, layer12], cross_entropy)
   mnist = Data().loadmnistdata()
   net.runmnist(100, 3000, 0.5, mnist)
 
-
-  def myrelu(x):
-    return tf.maximum(x, tf.constant(0.0, dtype=tf.float64))
