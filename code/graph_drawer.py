@@ -1,28 +1,39 @@
 import plotly.offline as py
 import plotly.graph_objs as go
-
-# Create random data with numpy
 import numpy as np
 
-def drawGraph(x, y):
-    # Create a trace
-    data = []
-    for y0 in y:
-        trace = go.Scatter(
-            x=x,
-            y=y0
-        )
-        data.append(trace)
 
-    py.plot(data, filename='test.html')
+def createTrace(x, y):
+  """ It works with both array and ndarray """
+  trace = go.Scatter(
+    x=x,
+    y=y
+  )
+  return trace
 
-def drawGraphByEpochs(y, epochs):
-    epochs = np.asarray(range(1, epochs + 1))
-    drawGraph(epochs, y)
+
+def drawOneGraph(x, y, filename):
+  data = [createTrace(x, y)]
+  py.plot(data, filename=filename)
+
+
+def drawMultiGraph(x, ys, filename):
+  data = []
+  for y in ys:
+    data.append(createTrace(x, y))
+  py.plot(data, filename=filename)
+
+
+def drawExperimentGraph(experiment, filename):
+  x = range(1, 1 + experiment.epochs)
+  y = experiment.output
+  drawMultiGraph(x, y, filename)
+
 
 if __name__ == "__main__":
-    from code.mnist_softmax import runGraph
-    mini_batch_size = 1000
-    epochs = 10
-    accuracy = np.asarray(runGraph(mini_batch_size * epochs))
-    drawGraphByEpochs(accuracy, epochs)
+  x = [1, 2, 3, 4, 5]
+  y1 = [1, 4, 9, 16, 25]
+  drawOneGraph(x, y1, "test1.html")
+  y2 = [1, 2, 3, 4, 5]
+  y = [y1, y2]
+  drawMultiGraph(x, y, "test2.html")

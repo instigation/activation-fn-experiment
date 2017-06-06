@@ -3,18 +3,22 @@ from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 import pickle
 
+
 def weight_variable(shape, dtype=tf.float64):
-    initial = tf.truncated_normal(shape, stddev=0.01, dtype=tf.float64)
-    return tf.Variable(initial, dtype=dtype)
+  initial = tf.truncated_normal(shape, stddev=0.01, dtype=tf.float64)
+  return tf.Variable(initial, dtype=dtype)
+
 
 def bias_variable(shape, dtype=tf.float64):
-    initial = tf.constant(0.0, shape=shape, dtype=tf.float64)
-    return tf.Variable(initial, dtype=dtype)
+  initial = tf.constant(0.0, shape=shape, dtype=tf.float64)
+  return tf.Variable(initial, dtype=dtype)
+
 
 def loadData():
   ## load data
   mnist = input_data.read_data_sets("../input/MNIST_data/", one_hot=True)
   return mnist
+
 
 class FullyConnectedLayer(object):
   def __init__(self, n_in, n_out, activation_fn, input, dtype=tf.float64):
@@ -22,8 +26,10 @@ class FullyConnectedLayer(object):
     b = bias_variable([n_out])
     self.output = activation_fn(tf.matmul(input, W) + b)
 
+
 def myrelu(x):
   return tf.maximum(x, tf.constant(0.0, dtype=tf.float64))
+
 
 def zeroLayerSoftmax(mnist, learning_rate=0.5, mini_batch_size=100, epochs=1000):
   ## setup variables
@@ -43,7 +49,7 @@ def zeroLayerSoftmax(mnist, learning_rate=0.5, mini_batch_size=100, epochs=1000)
   def calculateAccuracy():
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    return sess.run(accuracy, feed_dict={x:mnist.test.images, y_: mnist.test.labels})
+    return sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels})
 
   ## train for real
   previous_accuracy = 0.0
@@ -64,6 +70,7 @@ def zeroLayerSoftmax(mnist, learning_rate=0.5, mini_batch_size=100, epochs=1000)
 
   return accumulative_accuracy
 
+
 def run(times, epochs):
   ret = []
   mnist = loadData()
@@ -73,6 +80,7 @@ def run(times, epochs):
   print(sum(ret) / times)
   return ret
 
+
 def runSaveData(times, epochs):
   ret = []
   mnist = loadData()
@@ -81,12 +89,15 @@ def runSaveData(times, epochs):
     ret.append(acc)
   np.savetxt("../output/test.txt", ret)
 
+
 def loadArray(filepath="../output/test.txt"):
   return np.loadtxt(filepath)
+
 
 def runGraph(epochs):
   mnist = loadData()
   return zeroLayerSoftmax(mnist, epochs=epochs)
+
 
 if __name__ == "__main__":
   mini_batch_size = 1000
@@ -96,4 +107,5 @@ if __name__ == "__main__":
   ret = loadArray()
   print(ret)
   from code.graph_drawer import drawGraphByEpochs
+
   drawGraphByEpochs(ret, epochs)
