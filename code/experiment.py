@@ -20,16 +20,18 @@ class ExperimentManager(object):
 
 
 class ActivationfnExperiment(object):
-  def __init__(self, activationfns, tags, name, n_iteration, epochs=20000):
+  def __init__(self, activationfns, tags, name, n_iteration, epochs=15000):
     self.activationfns = activationfns
     self.tags = tags
     self.name = name
     self.filename = nametofilename(name)
     self.data = Data()
+    self.mnist = self.data.loadmnistdata()
     self.n_iteration = n_iteration
     self.epochs = epochs
 
-  def runone(self, activationfn):
+  def runone(self, activationfn, tag):
+    print(tag)
     with tf.Graph().as_default():
       dtype = tf.float64
       x = tf.placeholder(dtype, [None, 784])
@@ -40,18 +42,18 @@ class ActivationfnExperiment(object):
         return tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
       net = network.Network([layer01, layer02], cross_entropy)
-      mnist = self.data.loadmnistdata()
       ret = []
-      for _ in range(self.n_iteration):
-        ret.append(net.runmnist(100, self.epochs, 0.5, mnist))
+      for nth_iteration in range(self.n_iteration):
+        print("%d th iteration" % (nth_iteration + 1))
+        ret.append(net.runmnist(100, self.epochs, 0.5, self.mnist))
       self.raw_output.append(ret)
       return average(ret)
 
   def run(self):
     self.raw_output = []
     self.output = []
-    for activationfn in self.activationfns:
-      self.output.append(self.runone(activationfn))
+    for activationfn, tag in zip(self.activationfns, self.tags):
+      self.output.append(self.runone(activationfn, tag))
     return self.output
 
   def runandsaveoutput(self):
