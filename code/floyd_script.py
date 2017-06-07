@@ -5,8 +5,10 @@ import tensorflow as tf
 if __name__ == "__main__":
   def reluVar(a):
     return lambda x : tf.maximum(x*a, tf.constant(0.0, dtype=tf.float64))
-  fns = [reluVar(1-0.05*i) for i in range(10)]
-  tags = ["gradient"+str(1-0.05*i) for i in range(10)]
-  expr = ActivationfnExperiment(fns, tags, "relu with smaller gradients", 10)
+  def leakyrelu(x):
+    return tf.maximum(x, 0.01*x)
+  fns = [leakyrelu, tf.nn.relu]
+  tags = ["sigmoid", "relu"]
+  expr = ActivationfnExperiment(fns, tags, "test", 2)
   expr.runandsaveoutput()
   drawexperimentgraph(expr, expr.filename)
